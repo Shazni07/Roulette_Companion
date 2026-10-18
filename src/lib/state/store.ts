@@ -53,6 +53,8 @@ interface State {
   outsideVisible: boolean;
 
   init: () => Promise<void>;
+  /** After online sync: reload the list of sessions without disturbing the session being played. */
+  refreshSessions: () => Promise<void>;
   clearMessages: () => void;
   go: (s: Screen) => void;
   currentRound: () => Round | null;
@@ -184,6 +186,15 @@ export const useStore = create<State>((set, get) => {
         set({ ready: true, sessions: data.sessions, session: null, rounds: [], screen: "home" });
       } catch (e) {
         set({ ready: true, error: `Could not open the saved data: ${msg(e)}` });
+      }
+    },
+    refreshSessions: async () => {
+      try {
+        const data = await db.loadAll();
+        for (const x of data.sessions) if (x.currencySymbol) rememberSymbol(x.currency, x.currencySymbol);
+        set({ sessions: data.sessions });
+      } catch {
+        /* the list simply stays as it was */
       }
     },
     clearMessages: () => set({ error: null, notice: null }),

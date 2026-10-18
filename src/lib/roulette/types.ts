@@ -147,6 +147,8 @@ export interface Round {
   reconciliationStatus: ReconciliationStatus;
   roundStatus: RoundStatus;
   audit: AuditEntry[];
+  /** Set when saved on this phone; used to decide which copy is newest when syncing online. */
+  updatedAt?: number;
 }
 
 export interface MoneyAddition {
@@ -175,6 +177,8 @@ export interface Session {
   totalRounds: number;
   sessionStatus: SessionStatus;
   setupStep: SetupStep;
+  /** Set when saved on this phone; used to decide which copy is newest when syncing online. */
+  updatedAt?: number;
 }
 
 export type TransactionType = "initial" | "money-added" | "chips-edit" | "round-result" | "adjustment";
@@ -189,6 +193,7 @@ export interface InventoryTransaction {
   monetaryChange: number;
   createdAt: number;
   reason: string;
+  updatedAt?: number;
 }
 
 export interface SettlementBetResult {

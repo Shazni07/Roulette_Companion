@@ -68,6 +68,12 @@ It uses the app's real calculation code (the same rules, payouts, chips and tota
 - The service worker only runs in the production build (`npm run build`, then `npm start`) and only over `https://` or `localhost`. In `npm run dev` it is off on purpose.
 - Rebuild the icons with `npm run icons` if the design in `scripts/make-icons.mjs` changes. When `public/sw.js` changes its behaviour, bump `VERSION` inside it.
 
+## Online storage (Supabase)
+
+Optional sign-in saves sessions online and lets another phone open them. The phone stays the main copy: everything works offline and uploads when the internet is back. Steps (run the SQL file, Vercel variables): see [supabase/SETUP.md](supabase/SETUP.md). Without the two `NEXT_PUBLIC_SUPABASE_*` settings the sign-in card is simply hidden.
+
+Code: `src/lib/sync/engine.ts` (push, pull, newest wins), `client.ts` (Supabase), `cloud.ts` (sign-in state), `src/components/CloudCard.tsx`, and the waiting list in `src/lib/state/db.ts`.
+
 ## Chip history on each bet card
 
 Derived only from **saved** rounds:

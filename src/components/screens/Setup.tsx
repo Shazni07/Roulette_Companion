@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CloudCard } from "@/components/CloudCard";
 import { MainNumbersBar } from "@/components/MainNumbersBar";
 import { InstallCard } from "@/components/PwaParts";
 import { ScreenFrame } from "@/components/ScreenFrame";
@@ -38,6 +39,8 @@ export function HomeScreen() {
         {unfinished.length ? "Start a New Session" : "Start Session"}
       </Button>
       {unfinished.length > 0 && <p className="text-center text-base text-muted">Starting a new session keeps your other session safe.</p>}
+
+      <CloudCard />
 
       <InstallCard />
 

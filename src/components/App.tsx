@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { X } from "lucide-react";
 import { useEffect } from "react";
 import { useStore } from "@/lib/state/store";
+import { useCloud } from "@/lib/sync/cloud";
 import { PwaRuntime } from "./PwaParts";
 import { BetsScreen } from "./screens/Bets";
 import { FinishScreen, ResultScreen, ReviewScreen, SavedScreen, WinningScreen } from "./screens/Play";
@@ -16,6 +17,11 @@ export function App() {
   useEffect(() => {
     void init();
   }, [init]);
+
+  // online storage starts once the saved sessions are loaded (does nothing when it is not set up)
+  useEffect(() => {
+    if (ready) void useCloud.getState().start();
+  }, [ready]);
 
   useEffect(() => {
     if (!notice) return;
