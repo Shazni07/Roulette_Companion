@@ -60,6 +60,14 @@ It uses the app's real calculation code (the same rules, payouts, chips and tota
 - `mainNumbers` per round is optional and only shown in the report.
 - A mistake is explained in plain words with the round and bet, for example "Round 3, bet 2 (Straight: 6): you have no chips of value 250".
 
+## Install on a phone and use offline (PWA)
+
+- The app has a manifest, app icons (`public/icon-*.png`, `apple-touch-icon.png`) and an offline service worker (`public/sw.js`).
+- On the home screen of a phone that has not installed it yet, a card explains how: an **Install App** button on Android, **Share → Add to Home Screen** on iPhone (Safari only).
+- After the first visit it opens with no internet. A new version waits until the player taps **Update**, so a round is never interrupted.
+- The service worker only runs in the production build (`npm run build`, then `npm start`) and only over `https://` or `localhost`. In `npm run dev` it is off on purpose.
+- Rebuild the icons with `npm run icons` if the design in `scripts/make-icons.mjs` changes. When `public/sw.js` changes its behaviour, bump `VERSION` inside it.
+
 ## Chip history on each bet card
 
 Derived only from **saved** rounds:

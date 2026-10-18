@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { X } from "lucide-react";
 import { useEffect } from "react";
 import { useStore } from "@/lib/state/store";
+import { PwaRuntime } from "./PwaParts";
 import { BetsScreen } from "./screens/Bets";
 import { FinishScreen, ResultScreen, ReviewScreen, SavedScreen, WinningScreen } from "./screens/Play";
 import { KeepNumbersScreen, NumbersScreen, ResumeScreen } from "./screens/RoundSetup";
@@ -45,6 +46,7 @@ export function App() {
           </div>
         </div>
       )}
+      <PwaRuntime />
       <main>{ready ? <Current screen={screen} /> : <p className="py-20 text-center text-xl text-muted">Opening your saved sessions…</p>}</main>
     </div>
   );

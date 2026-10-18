@@ -50,7 +50,7 @@ export function ScreenFrame({
         {children}
       </div>
       {hasFooter && (
-        <div className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 backdrop-blur">
+        <div className="kb-hide safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 backdrop-blur">
           <div className="mx-auto flex max-w-md gap-3 px-4 py-3 md:max-w-2xl">
             {onBack && (
               <Button onClick={onBack} className={primaryLabel ? "shrink-0" : "w-full"}>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { MainNumbersBar } from "@/components/MainNumbersBar";
+import { InstallCard } from "@/components/PwaParts";
 import { ScreenFrame } from "@/components/ScreenFrame";
 import { Alert, Button, Card, ConfirmDialog, Field, MoneyInput, Sheet, TextInput, plural } from "@/components/ui";
 import { inventoryTotals, suggestChipCount } from "@/lib/roulette/inventory";
@@ -37,6 +38,8 @@ export function HomeScreen() {
         {unfinished.length ? "Start a New Session" : "Start Session"}
       </Button>
       {unfinished.length > 0 && <p className="text-center text-base text-muted">Starting a new session keeps your other session safe.</p>}
+
+      <InstallCard />
 
       <ConfirmDialog
         open={!!deleting}

@@ -25,6 +25,8 @@ body {
   color: rgb(var(--fg));
   overflow-x: clip;
   -webkit-tap-highlight-color: transparent;
+  /* a pull-down must not reload the page in the middle of a round */
+  overscroll-behavior-y: none;
 }
 
 body {
@@ -80,4 +82,16 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 .sheet-in {
   animation: sheet-in 0.18s ease-out;
+}
+
+/* no 300 ms wait or accidental zoom on a double tap of a button (pinch zoom still works) */
+html {
+  touch-action: manipulation;
+}
+
+/* iPhone only (set by PwaRuntime): hide the bottom bar while the keyboard is open */
+@media (pointer: coarse) {
+  body[data-kb="1"] .kb-hide {
+    display: none;
+  }
 }
