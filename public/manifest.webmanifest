@@ -1,0 +1,10 @@
+{
+  "name": "Roulette Companion",
+  "short_name": "Roulette",
+  "description": "Chip and bet tracker for single-zero roulette sessions.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1210",
+  "theme_color": "#0d1210",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

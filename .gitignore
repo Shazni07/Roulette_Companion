@@ -1,0 +1,25 @@
+# dependencies and build output (rebuilt by `npm install` and `npm run build`)
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# secrets: never put keys on GitHub (Supabase keys go in .env.local and in Vercel's settings)
+.env
+.env.*
+!.env.example
+
+# generated reports from `npm run simulate`
+reports/
+
+# local tools and hosting
+.vercel/
+.claude/
+coverage/
+
+# editor and system files
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*

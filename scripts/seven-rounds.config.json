@@ -1,0 +1,116 @@
+{
+  "title": "My 7 round plan",
+  "currency": "LKR",
+  "startingMoney": 500000,
+  "chips": [
+    {
+      "value": 500
+    }
+  ],
+  "mainNumbers": [
+    6,
+    17,
+    20,
+    34
+  ],
+  "rounds": [
+    {
+      "winningNumber": 5,
+      "bets": [
+        { "type": "straight", "numbers": [6], "chips": { "500": 1 } },
+        { "type": "split", "numbers": [5, 6], "chips": { "500": 1 } },
+        { "type": "street", "numbers": [4, 5, 6], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [17], "chips": { "500": 1 } },
+        { "type": "split", "numbers": [16, 17], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [20], "chips": { "500": 1 } },
+        { "type": "split", "numbers": [19, 20], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [34], "chips": { "500": 1 } },
+        { "type": "street", "numbers": [34, 35, 36], "chips": { "500": 1 } }
+      ]
+    },
+    {
+      "winningNumber": 17,
+      "bets": [
+        { "type": "straight", "numbers": [6], "chips": { "500": 2 } },
+        { "type": "split", "numbers": [5, 6], "chips": { "500": 1 } },
+        { "type": "street", "numbers": [4, 5, 6], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [17], "chips": { "500": 2 } },
+        { "type": "split", "numbers": [16, 17], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [20], "chips": { "500": 2 } },
+        { "type": "split", "numbers": [19, 20], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [34], "chips": { "500": 2 } },
+        { "type": "street", "numbers": [34, 35, 36], "chips": { "500": 1 } }
+      ]
+    },
+    {
+      "winningNumber": 0,
+      "bets": [
+        { "type": "straight", "numbers": [6], "chips": { "500": 3 } },
+        { "type": "split", "numbers": [5, 6], "chips": { "500": 1 } },
+        { "type": "street", "numbers": [4, 5, 6], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [17], "chips": { "500": 3 } },
+        { "type": "split", "numbers": [16, 17], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [20], "chips": { "500": 3 } },
+        { "type": "split", "numbers": [19, 20], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [34], "chips": { "500": 3 } },
+        { "type": "street", "numbers": [34, 35, 36], "chips": { "500": 1 } }
+      ]
+    },
+    {
+      "winningNumber": 6,
+      "bets": [
+        { "type": "straight", "numbers": [6], "chips": { "500": 4 } },
+        { "type": "split", "numbers": [5, 6], "chips": { "500": 1 } },
+        { "type": "street", "numbers": [4, 5, 6], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [17], "chips": { "500": 4 } },
+        { "type": "split", "numbers": [16, 17], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [20], "chips": { "500": 4 } },
+        { "type": "split", "numbers": [19, 20], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [34], "chips": { "500": 4 } },
+        { "type": "street", "numbers": [34, 35, 36], "chips": { "500": 1 } }
+      ]
+    },
+    {
+      "winningNumber": 20,
+      "bets": [
+        { "type": "straight", "numbers": [6], "chips": { "500": 5 } },
+        { "type": "split", "numbers": [5, 6], "chips": { "500": 1 } },
+        { "type": "street", "numbers": [4, 5, 6], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [17], "chips": { "500": 5 } },
+        { "type": "split", "numbers": [16, 17], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [20], "chips": { "500": 5 } },
+        { "type": "split", "numbers": [19, 20], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [34], "chips": { "500": 5 } },
+        { "type": "street", "numbers": [34, 35, 36], "chips": { "500": 1 } }
+      ]
+    },
+    {
+      "winningNumber": 34,
+      "bets": [
+        { "type": "straight", "numbers": [6], "chips": { "500": 6 } },
+        { "type": "split", "numbers": [5, 6], "chips": { "500": 1 } },
+        { "type": "street", "numbers": [4, 5, 6], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [17], "chips": { "500": 6 } },
+        { "type": "split", "numbers": [16, 17], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [20], "chips": { "500": 6 } },
+        { "type": "split", "numbers": [19, 20], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [34], "chips": { "500": 6 } },
+        { "type": "street", "numbers": [34, 35, 36], "chips": { "500": 1 } }
+      ]
+    },
+    {
+      "winningNumber": 12,
+      "bets": [
+        { "type": "straight", "numbers": [6], "chips": { "500": 7 } },
+        { "type": "split", "numbers": [5, 6], "chips": { "500": 1 } },
+        { "type": "street", "numbers": [4, 5, 6], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [17], "chips": { "500": 7 } },
+        { "type": "split", "numbers": [16, 17], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [20], "chips": { "500": 7 } },
+        { "type": "split", "numbers": [19, 20], "chips": { "500": 1 } },
+        { "type": "straight", "numbers": [34], "chips": { "500": 7 } },
+        { "type": "street", "numbers": [34, 35, 36], "chips": { "500": 1 } }
+      ]
+    }
+  ]
+}

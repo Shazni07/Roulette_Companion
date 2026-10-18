@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --bg: 12 16 14;
+  --surface: 24 31 28;
+  --surface2: 36 46 41;
+  --line: 66 80 73;
+  --fg: 246 249 247;
+  --muted: 176 190 182;
+  --felt: 30 140 82;
+  --felt-dark: 20 83 45;
+  --red: 200 40 40;
+  --black: 38 42 40;
+  --gain: 90 230 140;
+  --loss: 255 125 125;
+  --warn: 252 200 60;
+}
+
+html,
+body {
+  background: rgb(var(--bg));
+  color: rgb(var(--fg));
+  overflow-x: clip;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 18px;
+  line-height: 1.45;
+  min-height: 100dvh;
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  outline: none;
+}
+:focus-visible {
+  outline: 3px solid rgb(var(--gain));
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.sheet-in {
+  animation: sheet-in 0.18s ease-out;
+}
