@@ -7,6 +7,7 @@ import { useStore } from "@/lib/state/store";
 import { useCloud } from "@/lib/sync/cloud";
 import { PwaRuntime } from "./PwaParts";
 import { BetsScreen } from "./screens/Bets";
+import { HistoryScreen, PastDetailScreen } from "./screens/History";
 import { FinishScreen, ResultScreen, ReviewScreen, SavedScreen, WinningScreen } from "./screens/Play";
 import { KeepNumbersScreen, NumbersScreen, ResumeScreen } from "./screens/RoundSetup";
 import { HomeScreen, StartScreen } from "./screens/Setup";
@@ -82,5 +83,9 @@ function Current({ screen }: { screen: ReturnType<typeof useStore.getState>["scr
       return <SavedScreen />;
     case "finish":
       return <FinishScreen />;
+    case "history":
+      return <HistoryScreen />;
+    case "pastdetail":
+      return <PastDetailScreen />;
   }
 }

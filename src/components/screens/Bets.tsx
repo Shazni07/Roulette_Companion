@@ -1,13 +1,14 @@
 "use client";
 
 import clsx from "clsx";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Undo2 } from "lucide-react";
 import { useId, useMemo, useState } from "react";
 import { BULK_TYPES, roundProblems, type BulkType } from "@/lib/roulette/betting";
 import { buildHistoryIndex, type ChipCount, type HistoryIndex, type PositionHistory } from "@/lib/roulette/history";
 import { insideGroups, outsidePositions } from "@/lib/roulette/rules";
 import type { BetPosition, Position, Round, Session } from "@/lib/roulette/types";
 import { AddChipsSheet } from "@/components/AddChipsSheet";
+import { LimitBanner } from "@/components/LimitBanner";
 import { ScreenFrame } from "@/components/ScreenFrame";
 import { Alert, Button, NumberBadge, NumberList, QtyStepper, plural, useFmt } from "@/components/ui";
 import { resultIfNumberWins } from "@/lib/roulette/settlement";
@@ -19,7 +20,8 @@ export function BetsScreen() {
   const round = useStore((s) => s.currentRound());
   const rounds = useStore((s) => s.rounds);
   const outsideVisible = useStore((s) => s.outsideVisible);
-  const { go, toggleOutside } = useStore();
+  const { go, toggleOutside, undo } = useStore();
+  const canUndo = useStore((s) => s.undoStack.length > 0 && s.undoStack[s.undoStack.length - 1]!.roundId === round?.id);
   const [addOpen, setAddOpen] = useState(false);
   // which numbers are unfolded; each new round starts again with only the first number open
   const [unfolded, setUnfolded] = useState<{ roundId: string; numbers: number[] } | null>(null);
@@ -68,6 +70,12 @@ export function BetsScreen() {
           </ul>
         </Alert>
       )}
+
+      <LimitBanner />
+
+      <Button className="w-full" disabled={!canUndo} onClick={() => void undo()}>
+        <Undo2 aria-hidden size={22} /> Undo Last Chip Change
+      </Button>
 
       {canAddChips && (
         <>

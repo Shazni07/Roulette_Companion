@@ -5,6 +5,7 @@ import { CloudCard } from "@/components/CloudCard";
 import { MainNumbersBar } from "@/components/MainNumbersBar";
 import { InstallCard } from "@/components/PwaParts";
 import { ScreenFrame } from "@/components/ScreenFrame";
+import { SettingsCard } from "@/components/SettingsCard";
 import { Alert, Button, Card, ConfirmDialog, Field, MoneyInput, Sheet, TextInput, plural } from "@/components/ui";
 import { inventoryTotals, suggestChipCount } from "@/lib/roulette/inventory";
 import { allCurrencies, formatMoney, registerCurrency, removeCurrency, saveCurrencyList, validateNewCurrency } from "@/lib/roulette/money";
@@ -14,7 +15,7 @@ import type { Currency, Session } from "@/lib/roulette/types";
 /* ───────── Screen One: Start Session ───────── */
 export function HomeScreen() {
   const sessions = useStore((s) => s.sessions);
-  const { openSession, go, deleteSession } = useStore();
+  const { openSession, go, deleteSession, openHistory } = useStore();
   const [deleting, setDeleting] = useState<Session | null>(null);
   // a session whose setup was never finished has no chips or rounds, so it is not offered
   const unfinished = sessions.filter((s) => s.sessionStatus !== "finished" && s.setupStep === "done").sort((a, b) => b.startedAt - a.startedAt);
@@ -40,9 +41,17 @@ export function HomeScreen() {
       </Button>
       {unfinished.length > 0 && <p className="text-center text-base text-muted">Starting a new session keeps your other session safe.</p>}
 
+      {sessions.some((s) => s.sessionStatus === "finished") && (
+        <Button className="w-full" onClick={() => void openHistory()}>
+          Past Sessions
+        </Button>
+      )}
+
       <CloudCard />
 
       <InstallCard />
+
+      <SettingsCard />
 
       <ConfirmDialog
         open={!!deleting}

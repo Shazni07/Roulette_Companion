@@ -95,3 +95,8 @@ html {
     display: none;
   }
 }
+
+/* "Large" text size from the home screen settings: everything scales from the page's base size */
+html[data-text="large"] {
+  font-size: 118%;
+}

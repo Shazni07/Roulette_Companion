@@ -13,13 +13,21 @@ import {
   showInstallPrompt,
   type InstallAdvice,
 } from "@/lib/pwa";
+import { applyTextSize, getTextSize } from "@/lib/prefs";
+import { useStore } from "@/lib/state/store";
+import { keepAwake } from "@/lib/wakeLock";
 import { Button, Card } from "./ui";
 
 /** Mounted once: registers offline support, shows "new version" and keeps the iPhone keyboard from covering buttons. */
 export function PwaRuntime() {
   const [apply, setApply] = useState<null | (() => void)>(null);
+  const playing = useStore((s) => !!s.session);
+
+  // the screen stays on while a session is open
+  useEffect(() => (playing ? keepAwake() : undefined), [playing]);
 
   useEffect(() => {
+    applyTextSize(getTextSize());
     captureInstallPrompt();
     registerServiceWorker((fn) => setApply(() => fn));
   }, []);

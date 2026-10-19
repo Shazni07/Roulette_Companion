@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { LimitBanner } from "@/components/LimitBanner";
 import { MainNumbersBar } from "@/components/MainNumbersBar";
+import { RecentNumbers } from "@/components/RecentNumbers";
 import { ScreenFrame } from "@/components/ScreenFrame";
 import { SessionBar } from "@/components/SessionBar";
 import { Alert, Button, Card, ConfirmDialog, NumberList } from "@/components/ui";
@@ -60,7 +62,9 @@ export function NumbersScreen() {
       primaryDisabled={sel.length === 0}
       onPrimary={() => go("bets")}
     >
+      <LimitBanner />
       <MainNumbersBar selected={sel} onToggle={(n) => void toggleMain(n)} onSetAll={(nums) => void setMain(nums)} defaultOpen />
+      <RecentNumbers />
       {hasDraftContent(round) && (
         <button className="min-h-[48px] w-full text-lg text-muted underline" onClick={() => setClearing(true)}>
           Clear Everything in This Round

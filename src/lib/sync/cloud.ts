@@ -26,12 +26,19 @@ interface CloudState {
   pending: number;
   lastSyncedAt: number | null;
   message: string | null;
+  /** True after the player opened the "reset password" link from an email: a new password must be chosen. */
+  recovering: boolean;
 
   start: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<string | null>;
   /** Returns an error text, or null; `needsConfirm` is true when a confirmation email must be opened first. */
   signUp: (email: string, password: string) => Promise<{ error: string | null; needsConfirm: boolean }>;
   signOut: (force?: boolean) => Promise<{ ok: boolean; pending: number }>;
+  /** Sends the reset email. Returns an error text, or null. */
+  resetPassword: (email: string) => Promise<string | null>;
+  /** After the reset link: saves the chosen password. Returns an error text, or null. */
+  setNewPassword: (password: string) => Promise<string | null>;
+  dismissRecovery: () => void;
   syncNow: (mode?: "full" | "push") => Promise<void>;
 }
 
@@ -162,11 +169,14 @@ export const useCloud = create<CloudState>((set, get) => {
     pending: 0,
     lastSyncedAt: null,
     message: null,
+    recovering: false,
 
     start: async () => {
       if (started || !get().enabled) return;
       started = true;
       setChangeListener(schedulePush);
+      // the link in the reset email brings the player back here with "type=recovery" in the address
+      if (typeof location !== "undefined" && /[#&?]type=recovery/.test(location.hash + location.search)) set({ recovering: true });
       const sb = getSupabase();
       try {
         const { data } = await sb.auth.getSession();
@@ -179,6 +189,7 @@ export const useCloud = create<CloudState>((set, get) => {
       }
       // signed out from elsewhere (for example the password was changed): go back to local-only
       sb.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY") setTimeout(() => set({ recovering: true }), 0);
         if (event === "SIGNED_OUT" && get().user) setTimeout(() => set({ user: null, status: "idle", message: null }), 0);
       });
       window.addEventListener("online", () => void syncNow("full"));
@@ -236,6 +247,29 @@ export const useCloud = create<CloudState>((set, get) => {
       set({ user: null, status: "idle", message: null });
       return { ok: true, pending: 0 };
     },
+
+    resetPassword: async (email) => {
+      try {
+        const { error } = await getSupabase().auth.resetPasswordForEmail(email.trim(), { redirectTo: window.location.origin });
+        return error ? friendlyError(error) : null;
+      } catch (e) {
+        return friendlyError(e);
+      }
+    },
+
+    setNewPassword: async (password) => {
+      try {
+        const { error } = await getSupabase().auth.updateUser({ password });
+        if (error) return friendlyError(error);
+        set({ recovering: false });
+        useStore.setState({ notice: "Your password was changed." });
+        return null;
+      } catch (e) {
+        return friendlyError(e);
+      }
+    },
+
+    dismissRecovery: () => set({ recovering: false }),
 
     syncNow,
   };

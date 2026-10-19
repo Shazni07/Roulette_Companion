@@ -8,6 +8,8 @@ The app always saves on the phone first, so it works with no internet. When some
 2. **Make sign-up easy.** Supabase → **Authentication** → **Sign In / Providers** → **Email**. Turn **Confirm email** OFF and save. Otherwise every new account must first open an email, and Supabase's free email sender allows only a few per hour.
 3. **Site address (after the Vercel link exists).** Supabase → **Authentication** → **URL Configuration**. Put the Vercel address (for example `https://roulette-companion.vercel.app`) in **Site URL**. This only matters if "Confirm email" is turned back on.
 
+4. **Forgot password.** The reset email brings the player back to the site, so the site address must be allowed. In **URL Configuration** add the Vercel address and, for testing on your computer, `http://localhost:3000` under **Redirect URLs**. Supabase's free email sender is limited to a few emails per hour, so a reset email can be slow or refused when many are sent. For heavier use, add your own email service under **Authentication → Emails → SMTP Settings**.
+
 ## 2. Local run
 
 `.env.local` already holds the project URL and the anon (publishable) key. It is ignored by Git, so it never goes to GitHub. On another computer copy `.env.example` to `.env.local` and fill in the two values.

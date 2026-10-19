@@ -177,6 +177,9 @@ export interface Session {
   totalRounds: number;
   sessionStatus: SessionStatus;
   setupStep: SetupStep;
+  /** Optional reminders (minor units): stop when total profit reaches stopWin, or total loss reaches stopLoss. */
+  stopWin?: number | null;
+  stopLoss?: number | null;
   /** Set when saved on this phone; used to decide which copy is newest when syncing online. */
   updatedAt?: number;
 }

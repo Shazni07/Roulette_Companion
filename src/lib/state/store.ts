@@ -25,7 +25,8 @@ import {
 } from "@/lib/roulette/session";
 import { currencySymbol, formatMoney, loadCurrencyList, rememberSymbol } from "@/lib/roulette/money";
 import { SettlementError } from "@/lib/roulette/settlement";
-import type { Currency, InventoryTransaction, Round, Session } from "@/lib/roulette/types";
+import { buzz } from "@/lib/prefs";
+import type { BetPosition, ChipDenomination, Currency, InventoryTransaction, Round, Session } from "@/lib/roulette/types";
 import * as db from "./db";
 
 export type Screen =
@@ -39,7 +40,16 @@ export type Screen =
   | "result"
   | "saved"
   | "keepnumbers"
-  | "finish";
+  | "finish"
+  | "history"
+  | "pastdetail";
+
+/** What the plan looked like before one chip change, so the change can be taken back. */
+interface UndoStep {
+  roundId: string;
+  bets: BetPosition[];
+  inventory: ChipDenomination[];
+}
 
 interface State {
   ready: boolean;
@@ -51,12 +61,23 @@ interface State {
   screen: Screen;
   /** Outside Bets are hidden when each round starts. This only controls visibility. */
   outsideVisible: boolean;
+  /** Chip changes in the current round that can be taken back, newest last. */
+  undoStack: UndoStep[];
+  /** Past Sessions screen: every saved round on this phone, and the session being looked at. */
+  pastRounds: Round[];
+  viewing: Session | null;
 
   init: () => Promise<void>;
   /** After online sync: reload the list of sessions without disturbing the session being played. */
   refreshSessions: () => Promise<void>;
   clearMessages: () => void;
   go: (s: Screen) => void;
+  /** Takes back the last chip change of this round. */
+  undo: () => Promise<boolean>;
+  openHistory: () => Promise<void>;
+  openPast: (id: string) => void;
+  /** Optional stop-win and stop-loss reminders (minor units, or null for none). */
+  setLimits: (stopWin: number | null, stopLoss: number | null) => Promise<boolean>;
   currentRound: () => Round | null;
 
   /** One step: money, currency and chips together. */
@@ -163,6 +184,14 @@ export const useStore = create<State>((set, get) => {
     if (!r) throw new RoundError("There is no round to work on.");
     return r;
   };
+  const remember = (round: Round, session: Session) =>
+    set((st) => ({ undoStack: [...st.undoStack, { roundId: round.id, bets: round.bets, inventory: session.inventory }].slice(-30) }));
+  /** Chip lists changed by hand: older undo steps would restore stale chip counts, so they are dropped. */
+  const dropUndo = async (done: Promise<boolean>) => {
+    const ok = await done;
+    if (ok) set({ undoStack: [] });
+    return ok;
+  };
   const locked = () => {
     const r = get().currentRound();
     return !!r && ["confirmed", "awaiting-result", "settled"].includes(r.roundStatus);
@@ -177,6 +206,9 @@ export const useStore = create<State>((set, get) => {
     rounds: [],
     screen: "home",
     outsideVisible: false,
+    undoStack: [],
+    pastRounds: [],
+    viewing: null,
 
     init: async () => {
       try {
@@ -198,7 +230,7 @@ export const useStore = create<State>((set, get) => {
       }
     },
     clearMessages: () => set({ error: null, notice: null }),
-    go: (screen) => set({ screen, error: null }),
+    go: (screen) => set({ screen, error: null, undoStack: [] }),
 
     currentRound: () => {
       const { rounds, session } = get();
@@ -219,7 +251,7 @@ export const useStore = create<State>((set, get) => {
         const ok = await commit({ session, transactions });
         if (ok) {
           // numbers chosen on the start page go straight into round 1 and the player lands on the bets
-          set({ rounds: [], screen: mainNumbers.length > 0 ? "bets" : "numbers", outsideVisible: false });
+          set({ rounds: [], screen: mainNumbers.length > 0 ? "bets" : "numbers", outsideVisible: false, undoStack: [] });
           void get()
             .startRound()
             .then(() => (mainNumbers.length > 0 ? get().setMain(mainNumbers) : true));
@@ -234,18 +266,20 @@ export const useStore = create<State>((set, get) => {
         const rounds = await db.getDB().rounds.where("sessionId").equals(id).toArray();
         const cur = rounds.find((r) => !["completed", "cancelled"].includes(r.roundStatus)) ?? null;
         const target = resumeTarget(s, cur);
-        set({ session: s, rounds, outsideVisible: false, screen: hasUnfinishedRound(cur) ? "resume" : target });
+        set({ session: s, rounds, outsideVisible: false, undoStack: [], screen: hasUnfinishedRound(cur) ? "resume" : target });
       })();
     },
 
-    leaveSession: () => set({ session: null, rounds: [], screen: "home", outsideVisible: false }),
+    leaveSession: () => set({ session: null, rounds: [], screen: "home", outsideVisible: false, undoStack: [] }),
 
     deleteSession: (id) =>
       guard(async () => {
         await db.deleteSessionData(id);
         set((s) => ({
           sessions: s.sessions.filter((x) => x.id !== id),
+          pastRounds: s.pastRounds.filter((r) => r.sessionId !== id),
           ...(s.session?.id === id ? { session: null, rounds: [], screen: "home" as Screen } : {}),
+          ...(s.viewing?.id === id ? { viewing: null, screen: "history" as Screen } : {}),
         }));
         return true;
       }),
@@ -260,14 +294,14 @@ export const useStore = create<State>((set, get) => {
       guard(async () => {
         if (locked()) throw new InventoryError("Your chips cannot be changed while a bet is waiting for its result.");
         const res = addChipType(needSession(), value, count);
-        return commit({ session: res.session, transactions: [res.transaction] });
+        return dropUndo(commit({ session: res.session, transactions: [res.transaction] }));
       }),
 
     editChip: (id, patch) =>
       guard(async () => {
         if (locked()) throw new InventoryError("Your chips cannot be changed while a bet is waiting for its result.");
         const res = editChipType(needSession(), id, patch);
-        return commit({ session: res.session, transactions: [res.transaction] });
+        return dropUndo(commit({ session: res.session, transactions: [res.transaction] }));
       }),
 
     bumpChip: (id, delta) =>
@@ -277,14 +311,14 @@ export const useStore = create<State>((set, get) => {
         const d = s.inventory.find((x) => x.id === id);
         if (!d) throw new InventoryError("That chip is not in your list.");
         const res = editChipType(s, id, { count: Math.max(0, d.availableCount + delta) });
-        return commit({ session: res.session, transactions: [res.transaction] });
+        return dropUndo(commit({ session: res.session, transactions: [res.transaction] }));
       }),
 
     removeChip: (id) =>
       guard(async () => {
         if (locked()) throw new InventoryError("Your chips cannot be changed while a bet is waiting for its result.");
         const res = removeChipType(needSession(), id);
-        return commit({ session: res.session, transactions: [res.transaction] });
+        return dropUndo(commit({ session: res.session, transactions: [res.transaction] }));
       }),
 
     startRound: () =>
@@ -320,7 +354,12 @@ export const useStore = create<State>((set, get) => {
         const res = setPositionChips(s.inventory, r.bets, r.id, positionKey, denId, Math.max(0, cur + delta), s.ruleset);
         let round = withTotals({ ...r, bets: res.bets });
         if (round.roundStatus === "draft") round = { ...round, roundStatus: "planning" };
-        return commit({ session: { ...s, inventory: res.inventory }, round });
+        const ok = await commit({ session: { ...s, inventory: res.inventory }, round });
+        if (ok) {
+          remember(r, s);
+          buzz();
+        }
+        return ok;
       }),
 
     applyPreviousPlus: (extra, denominationId) =>
@@ -346,11 +385,13 @@ export const useStore = create<State>((set, get) => {
         });
         let round = withTotals({ ...r, bets: res.bets });
         if (round.roundStatus === "draft") round = { ...round, roundStatus: "planning" };
-        return commit({
+        const ok = await commit({
           session: { ...s, inventory: res.inventory },
           round,
           notice: `Chips set on ${res.changed} bet${res.changed === 1 ? "" : "s"}: last round's chips plus your extra chips.`,
         });
+        if (ok) remember(r, s);
+        return ok;
       }),
 
     removeBet: (betId) =>
@@ -359,14 +400,49 @@ export const useStore = create<State>((set, get) => {
         const r = needRound();
         if (r.roundStatus !== "draft" && r.roundStatus !== "planning") throw new RoundError("This round is confirmed. Choose Edit Bets to change it.");
         const res = removeBetFromPlan(s.inventory, r.bets, betId);
-        return commit({ session: { ...s, inventory: res.inventory }, round: withTotals({ ...r, bets: res.bets }) });
+        const ok = await commit({ session: { ...s, inventory: res.inventory }, round: withTotals({ ...r, bets: res.bets }) });
+        if (ok) remember(r, s);
+        return ok;
       }),
+
+    undo: () =>
+      guard(async () => {
+        const s = needSession();
+        const r = needRound();
+        const top = get().undoStack[get().undoStack.length - 1];
+        if (!top || top.roundId !== r.id) throw new RoundError("There is nothing to undo.");
+        if (r.roundStatus !== "draft" && r.roundStatus !== "planning") throw new RoundError("This round is confirmed. Choose Edit Bets to change it.");
+        const ok = await commit({ session: { ...s, inventory: top.inventory }, round: withTotals({ ...r, bets: top.bets }) });
+        if (ok) {
+          set((st) => ({ undoStack: st.undoStack.slice(0, -1) }));
+          buzz();
+        }
+        return ok;
+      }),
+
+    openHistory: async () => {
+      try {
+        const data = await db.loadAll();
+        for (const x of data.sessions) if (x.currencySymbol) rememberSymbol(x.currency, x.currencySymbol);
+        set({ sessions: data.sessions, pastRounds: data.rounds, viewing: null, screen: "history", error: null, undoStack: [] });
+      } catch (e) {
+        set({ error: `Could not open the saved data: ${msg(e)}` });
+      }
+    },
+
+    openPast: (id) => {
+      const s = get().sessions.find((x) => x.id === id);
+      if (s) set({ viewing: s, screen: "pastdetail", error: null });
+    },
+
+    setLimits: (stopWin, stopLoss) =>
+      guard(async () => commit({ session: { ...needSession(), stopWin, stopLoss }, notice: stopWin || stopLoss ? "Stop limits saved." : "Stop limits removed." })),
 
     clearDraft: () =>
       guard(async () => {
         const res = clearDraftOp(needSession(), needRound());
         const ok = await commit({ session: res.session, round: res.round, notice: "Cleared. Your saved rounds were not touched." });
-        if (ok) set({ screen: "numbers", outsideVisible: false });
+        if (ok) set({ screen: "numbers", outsideVisible: false, undoStack: [] });
         return ok;
       }),
 
@@ -387,7 +463,10 @@ export const useStore = create<State>((set, get) => {
     settle: (n) =>
       guard(async () => {
         const ok = await commit({ round: settleRound(needRound(), n) });
-        if (ok) set({ screen: "result" });
+        if (ok) {
+          set({ screen: "result" });
+          buzz();
+        }
         return ok;
       }),
 
@@ -404,7 +483,10 @@ export const useStore = create<State>((set, get) => {
         const r = needRound();
         const res = completeRound(s, r, get().rounds, opts);
         const ok = await commit({ session: res.session, round: res.round, transactions: res.transactions, notice: "Round Saved" });
-        if (ok) set({ screen: "saved", outsideVisible: false });
+        if (ok) {
+          set({ screen: "saved", outsideVisible: false, undoStack: [] });
+          buzz(30);
+        }
         return ok;
       }),
 

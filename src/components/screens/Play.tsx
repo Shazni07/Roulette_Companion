@@ -5,10 +5,14 @@ import { useMemo, useState } from "react";
 import { roundProblems } from "@/lib/roulette/betting";
 import { estimateHoldings, holdingsTotals } from "@/lib/roulette/chips";
 import { inventoryTotals } from "@/lib/roulette/inventory";
+import { formatMoney } from "@/lib/roulette/money";
 import { colourOf } from "@/lib/roulette/rules";
 import { allRoundsTotals, sessionBalance, totalAdded, totalProfitLoss, type AllRoundsTotals } from "@/lib/roulette/session";
 import type { BetPosition, Round, Session } from "@/lib/roulette/types";
+import { LimitBanner } from "@/components/LimitBanner";
+import { RecentNumbers } from "@/components/RecentNumbers";
 import { ScreenFrame } from "@/components/ScreenFrame";
+import { ShareButtons } from "@/components/ShareButtons";
 import { SessionBar } from "@/components/SessionBar";
 import { Alert, Badge, Button, Card, ConfirmDialog, Heading, NumberBadge, NumberGrid, NumberList, Row, plural, useFmt } from "@/components/ui";
 import { resultIfNumberWins } from "@/lib/roulette/settlement";
@@ -162,6 +166,7 @@ export function WinningScreen() {
         setBusy(false);
       }}
     >
+      <RecentNumbers />
       <Card>
         <NumberGrid selected={pick === null ? [] : [pick]} onToggle={(n) => setPick(pick === n ? null : n)} label="Winning number" />
       </Card>
@@ -356,7 +361,10 @@ export function SavedScreen() {
           </div>
         </Card>
       )}
+      <LimitBanner />
       <AllRoundsCard t={allRoundsTotals(session, rounds)} title="Totals for All Rounds" />
+      <RecentNumbers />
+      {last && <ShareButtons session={session} rounds={rounds} round={last} />}
       <h2 className="text-2xl font-bold">Do you want to play another round?</h2>
       <div className="space-y-3">
         <Button
@@ -391,18 +399,15 @@ export function SavedScreen() {
 }
 
 /* ───────── Final summary ───────── */
-export function FinishScreen() {
-  const session = useStore((s) => s.session);
-  const rounds = useStore((s) => s.rounds);
-  const { leaveSession } = useStore();
-  const fmt = useFmt();
-  if (!session) return null;
-  const done = rounds.filter((r) => r.roundStatus === "completed").sort((a, b) => a.roundNumber - b.roundNumber);
+/** The summary of a session: money, chips and every round. Also used for finished sessions in Past Sessions. */
+export function SessionSummary({ session, rounds }: { session: Session; rounds: Round[] }) {
+  const fmt = (minor: number, signed = false) => formatMoney(minor, session.currency, { sign: signed });
+  const done = rounds.filter((r) => r.sessionId === session.id && r.roundStatus === "completed").sort((a, b) => a.roundNumber - b.roundNumber);
   const bet = done.reduce((s, r) => s + r.totalBet, 0);
   const net = totalProfitLoss(session, rounds);
   const t = inventoryTotals(session.inventory);
   return (
-    <ScreenFrame title="Session Finished" subtitle="Here is your summary." primaryLabel="Back to Start" onPrimary={leaveSession}>
+    <>
       <Card>
         <Row label="Rounds Played" value={done.length} />
         <Row label="Total Money Bet" value={fmt(bet)} />
@@ -429,6 +434,19 @@ export function FinishScreen() {
           ))}
         </section>
       )}
+    </>
+  );
+}
+
+export function FinishScreen() {
+  const session = useStore((s) => s.session);
+  const rounds = useStore((s) => s.rounds);
+  const { leaveSession } = useStore();
+  if (!session) return null;
+  return (
+    <ScreenFrame title="Session Finished" subtitle="Here is your summary." primaryLabel="Back to Start" onPrimary={leaveSession}>
+      <SessionSummary session={session} rounds={rounds} />
+      <ShareButtons session={session} rounds={rounds} />
     </ScreenFrame>
   );
 }

@@ -12,7 +12,7 @@ export const cloudConfigured = () => !!SUPABASE_URL && !!SUPABASE_KEY;
 let client: SupabaseClient | null = null;
 export function getSupabase(): SupabaseClient {
   if (!SUPABASE_URL || !SUPABASE_KEY) throw new Error("Online storage is not set up.");
-  client ??= createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
+  client ??= createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
   return client;
 }
 
