@@ -111,7 +111,7 @@ export function runSimulation(cfg: SimulationConfig): SimulationResult {
   const line = (s = "") => out.push(s);
   let mains = [...(cfg.mainNumbers ?? [])];
 
-  line(`${cfg.title ?? "Roulette Companion: simulated session"}`);
+  line(`${cfg.title ?? "PRO Calculator: simulated session"}`);
   line(`${"=".repeat(68)}`);
   line(`Started with ${fmt(startingMoney)} (${currency}). Chips: ${session.inventory.map((d) => `${inventoryTotals([d]).totalChips} x ${fmt(d.value)}`).join(", ")}.`);
   line(`${cfg.rounds.length} round${cfg.rounds.length === 1 ? "" : "s"} will be played.`);

@@ -1,4 +1,4 @@
-# Roulette Companion
+# PRO Calculator
 
 A very simple, mobile-first helper for a British (single-zero) roulette session: money, chips, bets, result, and chip history across rounds.
 It tracks and calculates. It does not predict results or advise bets.
@@ -13,7 +13,7 @@ npm run dev        # open http://localhost:3000
 
 Other commands: `npm test` (Vitest) · `npm run typecheck` · `npm run lint` · `npm run build` then `npm start`.
 
-Saved sessions live in the browser's IndexedDB (database `roulette-companion-v2`). No server, login or cloud is used.
+Saved sessions live in the browser's IndexedDB (database `roulette-companion-v2`, an internal name that stays the same). Signing in is optional and also saves them online (see below).
 
 ## The journey (one purpose per screen)
 

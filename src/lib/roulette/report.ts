@@ -23,7 +23,7 @@ export function roundSummaryText(session: Session, rounds: Round[], round: Round
   const fmt = (n: number, sign = false) => formatMoney(n, session.currency, { sign });
   const net = totalProfitLoss(session, rounds);
   return [
-    `Roulette Companion: Round ${round.roundNumber}`,
+    `PRO Calculator: Round ${round.roundNumber}`,
     round.winningNumber !== null ? `Winning number: ${round.winningNumber}` : null,
     `Money bet: ${fmt(round.totalBet)}`,
     `${resultWord(round.netResult)}${round.netResult !== 0 ? `: ${fmt(Math.abs(round.netResult))}` : ""}`,
@@ -40,7 +40,7 @@ export function sessionSummaryText(session: Session, rounds: Round[]): string {
   const done = savedRounds(session, rounds);
   const net = totalProfitLoss(session, rounds);
   return [
-    `Roulette Companion: session of ${new Date(session.startedAt).toLocaleDateString()}`,
+    `PRO Calculator: session of ${new Date(session.startedAt).toLocaleDateString()}`,
     `Rounds played: ${done.length}`,
     `Money bet: ${fmt(done.reduce((s, r) => s + r.totalBet, 0))}`,
     `Total profit or loss: ${fmt(net, true)}`,

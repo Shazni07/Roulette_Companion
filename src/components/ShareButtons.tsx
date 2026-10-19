@@ -16,7 +16,7 @@ export function ShareButtons({ session, rounds, round }: { session: Session; rou
         className="w-full"
         onClick={async () => {
           const text = round ? roundSummaryText(session, rounds, round) : sessionSummaryText(session, rounds);
-          const r = await shareText(text, "Roulette Companion");
+          const r = await shareText(text, "PRO Calculator");
           if (r === "copied") tell("Copied. You can paste it in WhatsApp or a message.");
           else if (r === "failed") useStore.setState({ error: "Sharing did not work on this phone." });
         }}

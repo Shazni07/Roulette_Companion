@@ -3,20 +3,20 @@
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { canVibrate, getTextSize, getVibrate, setTextSize, setVibrate, buzz, type TextSize } from "@/lib/prefs";
-import { Card } from "./ui";
 
+/** One quiet line: a label on the left and a small two-way switch on the right. */
 function Choice({ label, options, value, onPick }: { label: string; options: { id: string; text: string }[]; value: string; onPick: (id: string) => void }) {
   return (
-    <div>
-      <div className="mb-2 text-lg font-semibold">{label}</div>
-      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={label}>
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-base text-muted">{label}</span>
+      <div className="inline-flex rounded-xl border border-line p-0.5" role="radiogroup" aria-label={label}>
         {options.map((o) => (
           <button
             key={o.id}
             role="radio"
             aria-checked={value === o.id}
             onClick={() => onPick(o.id)}
-            className={clsx("min-h-[56px] rounded-2xl border-2 text-lg font-bold", value === o.id ? "border-gain bg-gain/10 text-gain" : "border-line bg-surface2")}
+            className={clsx("min-h-[40px] min-w-[72px] rounded-lg px-3 text-base", value === o.id ? "bg-surface2 font-semibold text-fg" : "text-muted")}
           >
             {o.text}
           </button>
@@ -26,7 +26,7 @@ function Choice({ label, options, value, onPick }: { label: string; options: { i
   );
 }
 
-/** Home screen: text size, and the small buzz on phones that support it. Kept on this phone only. */
+/** Home screen, at the bottom: text size, and the small buzz on phones that support it. Kept on this phone only. */
 export function SettingsCard() {
   const [size, setSize] = useState<TextSize>("normal");
   const [vibrate, setVib] = useState(true);
@@ -39,10 +39,9 @@ export function SettingsCard() {
   }, []);
 
   return (
-    <Card className="space-y-4">
-      <h2 className="text-xl font-bold">Settings</h2>
+    <section aria-label="Settings" className="space-y-1 border-t border-line pt-3">
       <Choice
-        label="Text Size"
+        label="Text size"
         value={size}
         options={[
           { id: "normal", text: "Normal" },
@@ -68,6 +67,6 @@ export function SettingsCard() {
           }}
         />
       )}
-    </Card>
+    </section>
   );
 }

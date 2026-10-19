@@ -1,4 +1,4 @@
--- Roulette Companion: online storage.
+-- PRO Calculator: online storage.
 -- Paste this whole file into Supabase → SQL Editor → New query → Run. It is safe to run twice.
 --
 -- Every row belongs to one signed-in user. Row Level Security makes sure a user can only

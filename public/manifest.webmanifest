@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Roulette Companion",
-  "short_name": "Roulette",
+  "name": "PRO Calculator",
+  "short_name": "PRO Calc",
   "description": "Manage your chips and track each round.",
   "start_url": "/",
   "scope": "/",

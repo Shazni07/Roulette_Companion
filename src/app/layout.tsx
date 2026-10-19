@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Roulette Companion",
+  title: "PRO Calculator",
   description: "Manage your chips and track each round.",
   manifest: "/manifest.webmanifest",
   icons: {
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
-  appleWebApp: { capable: true, title: "Roulette", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "PRO Calculator", statusBarStyle: "black-translucent" },
   formatDetection: { telephone: false },
 };
 

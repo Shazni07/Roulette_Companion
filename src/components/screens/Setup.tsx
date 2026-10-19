@@ -23,7 +23,7 @@ export function HomeScreen() {
   return (
     <div className="space-y-6 pt-6">
       <header className="text-center">
-        <h1 className="text-4xl font-bold">Roulette Companion</h1>
+        <h1 className="text-4xl font-bold">PRO Calculator</h1>
         <p className="mt-2 text-xl text-muted">Manage your chips and track each round.</p>
       </header>
 

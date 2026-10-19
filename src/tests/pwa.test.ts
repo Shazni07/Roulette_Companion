@@ -46,7 +46,7 @@ describe("web app manifest and icons", () => {
   };
 
   it("has what a phone needs to install it as an app", () => {
-    expect(manifest.name).toBe("Roulette Companion");
+    expect(manifest.name).toBe("PRO Calculator");
     expect(manifest.short_name.length).toBeLessThanOrEqual(12);
     expect(manifest).toMatchObject({ start_url: "/", scope: "/", display: "standalone", orientation: "portrait", id: "/" });
     expect(manifest.background_color).toMatch(/^#[0-9a-f]{6}$/i);

@@ -1,4 +1,4 @@
-/* Roulette Companion service worker: lets the app open and work with no internet.
+/* PRO Calculator service worker: lets the app open and work with no internet.
  *
  * - Page (navigation): network first, falls back to the saved copy when offline.
  * - /_next/static files (never change for a given name): saved, then served from the saved copy.
