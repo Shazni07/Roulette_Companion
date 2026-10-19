@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { rs } from "@/tests/helpers";
 import { positionKey } from "@/lib/roulette/rules";
 import * as db from "@/lib/state/db";
@@ -231,5 +231,41 @@ describe("each main number folds open and closed", () => {
     await S().adjustChips(positionKey("straight", [7]), d100(), 1);
     await waitFor(() => expect(header(7).textContent).toContain("1 place · 1 chip"));
     expect(header(8).getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("the bar of an open number sticks to the top of the screen; a closed one does not", () => {
+    render(<BetsScreen />);
+    const bar = (n: number) => header(n).parentElement!;
+    expect(bar(7).dataset.sticky).toBe("true");
+    expect(bar(7).className).toContain("sticky");
+    expect(bar(8).dataset.sticky).toBeUndefined();
+    expect(bar(8).className).not.toContain("sticky");
+    fireEvent.click(header(8));
+    expect(bar(8).className).toContain("sticky");
+    fireEvent.click(header(7));
+    expect(bar(7).className).not.toContain("sticky");
+  });
+
+  it("folding from far down the list scrolls back to the number's bar; folding near the top does not scroll", async () => {
+    const scroll = vi.fn();
+    Element.prototype.scrollIntoView = scroll;
+    const rect = vi.spyOn(Element.prototype, "getBoundingClientRect");
+    render(<BetsScreen />);
+    const wrap = header(7).closest("div.space-y-3") as HTMLElement;
+
+    rect.mockImplementation(function (this: Element) {
+      return { top: this === wrap ? -400 : 0, bottom: 0, left: 0, right: 0, width: 0, height: 0, x: 0, y: 0, toJSON: () => ({}) } as DOMRect;
+    });
+    fireEvent.click(header(7)); // scrolled far down: the number's block starts above the screen
+    await waitFor(() => expect(scroll).toHaveBeenCalledTimes(1));
+    expect(scroll).toHaveBeenCalledWith({ block: "start" });
+
+    scroll.mockClear();
+    fireEvent.click(header(7)); // open again
+    rect.mockImplementation(() => ({ top: 20, bottom: 0, left: 0, right: 0, width: 0, height: 0, x: 0, y: 0, toJSON: () => ({}) }) as DOMRect);
+    fireEvent.click(header(7)); // the block starts on screen: nothing to scroll
+    await new Promise((r) => requestAnimationFrame(() => r(null)));
+    expect(scroll).not.toHaveBeenCalled();
+    rect.mockRestore();
   });
 });

@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { ChevronDown, Undo2 } from "lucide-react";
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { BULK_TYPES, roundProblems, type BulkType } from "@/lib/roulette/betting";
 import { buildHistoryIndex, type ChipCount, type HistoryIndex, type PositionHistory } from "@/lib/roulette/history";
 import { insideGroups, outsidePositions } from "@/lib/roulette/rules";
@@ -142,26 +142,45 @@ function NumberFold({
 }) {
   const fmt = useFmt();
   const id = useId();
+  const wrap = useRef<HTMLDivElement>(null);
   const keys = new Set(positions.map((p) => p.key));
   const placed = bets.filter((b) => keys.has(b.key) && b.chipCount > 0);
   const chips = placed.reduce((sum, b) => sum + b.chipCount, 0);
   const money = placed.reduce((sum, b) => sum + b.stake, 0);
+  const toggle = () => {
+    const closing = open;
+    onToggle();
+    // closing from far down the list: bring this number's bar back into view so the page does not jump somewhere else
+    if (closing) {
+      requestAnimationFrame(() => {
+        const el = wrap.current;
+        if (el && el.getBoundingClientRect().top < 0) el.scrollIntoView?.({ block: "start" });
+      });
+    }
+  };
   return (
-    <div className="space-y-3">
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={id}
-        onClick={onToggle}
-        className="flex min-h-[64px] w-full items-center gap-3 rounded-2xl border-2 border-line bg-surface px-3 text-left active:scale-[0.99]"
+    <div ref={wrap} className="space-y-3">
+      {/* while this number is open its bar stays at the top of the screen, so it can be folded without scrolling back up */}
+      <div
+        data-sticky={open ? "true" : undefined}
+        className={clsx(open && "sticky z-30 -mx-4 bg-bg px-4 py-2 shadow-[0_8px_10px_-8px_rgba(0,0,0,0.7)]")}
+        style={open ? { top: "env(safe-area-inset-top, 0px)" } : undefined}
       >
-        <NumberBadge n={number} size="md" />
-        <span className="min-w-0 flex-1">
-          <span className="block text-xl font-bold">Bets with {number}</span>
-          <span className="block text-base text-muted">{placed.length > 0 ? `${plural(placed.length, "place")} · ${plural(chips, "chip")} · ${fmt(money)}` : "No chips yet"}</span>
-        </span>
-        <ChevronDown aria-hidden size={28} className={clsx("shrink-0 text-muted transition-transform", open && "rotate-180")} />
-      </button>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={id}
+          onClick={toggle}
+          className="flex min-h-[64px] w-full items-center gap-3 rounded-2xl border-2 border-line bg-surface px-3 text-left active:scale-[0.99]"
+        >
+          <NumberBadge n={number} size="md" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-xl font-bold">Bets with {number}</span>
+            <span className="block text-base text-muted">{placed.length > 0 ? `${plural(placed.length, "place")} · ${plural(chips, "chip")} · ${fmt(money)}` : "No chips yet"}</span>
+          </span>
+          <ChevronDown aria-hidden size={28} className={clsx("shrink-0 text-muted transition-transform", open && "rotate-180")} />
+        </button>
+      </div>
       {open && (
         <div id={id} role="region" aria-label={`Bets with ${number}`} className="space-y-3">
           {children}
