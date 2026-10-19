@@ -21,6 +21,11 @@ beforeEach(async () => {
 });
 afterEach(cleanup);
 
+/** Each main number starts folded (except the first); open the rest so every card can be read. */
+const openAll = () => {
+  for (const b of screen.getAllByRole("button", { expanded: false })) fireEvent.click(b);
+};
+
 describe("Test 6 – Outside Bets default and toggle (screen)", () => {
   it("is hidden when the betting screen opens; the toggle shows and hides it without deleting bets", async () => {
     render(<BetsScreen />);
@@ -44,6 +49,7 @@ describe("Test 6 – Outside Bets default and toggle (screen)", () => {
 
   it("shows inside bets under each main number; split 7/8 is one position with one state", async () => {
     render(<BetsScreen />);
+    openAll();
     expect(screen.getByText("Bets with 7")).toBeTruthy();
     expect(screen.getByText("Bets with 8")).toBeTruthy();
     const splits = screen.getAllByText("Split: 7 / 8");
@@ -78,6 +84,7 @@ describe("straight bets show the result of the whole round if their number comes
   it("shows it only on straight positions and updates with the chips", async () => {
     const d100 = () => S().session!.inventory.find((d) => d.value === rs(100))!.id;
     render(<BetsScreen />);
+    openAll();
     // one "If … Comes Up" on the right of each straight position (7 and 8), none for splits, corners, etc.
     expect(screen.getAllByText(/^If [78] Comes Up$/)).toHaveLength(2);
     const card = (label: string) => screen.getAllByText(label)[0]!.closest("div.rounded-2xl")!;
@@ -182,5 +189,47 @@ describe("big controls", () => {
     expect((screen.getByLabelText("Fewer Rs. 100 chips") as HTMLButtonElement).disabled).toBe(true);
     fireEvent.click(screen.getByLabelText("More Rs. 100 chips"));
     expect(v).toBe(1);
+  });
+});
+
+describe("each main number folds open and closed", () => {
+  const header = (n: number) => screen.getByRole("button", { name: new RegExp(`Bets with ${n}`) });
+
+  it("starts with only the first number open, and each header opens and closes its own places", () => {
+    render(<BetsScreen />);
+    expect(header(7).getAttribute("aria-expanded")).toBe("true");
+    expect(header(8).getAttribute("aria-expanded")).toBe("false");
+    expect(screen.getAllByText("Straight: 7")).toHaveLength(1);
+    expect(screen.queryByText("Straight: 8")).toBeNull();
+
+    fireEvent.click(header(8)); // several can be open together
+    expect(screen.getByText("Straight: 8")).toBeTruthy();
+    expect(screen.getByText("Straight: 7")).toBeTruthy();
+
+    fireEvent.click(header(7)); // closing one leaves the other open
+    expect(screen.queryByText("Straight: 7")).toBeNull();
+    expect(screen.getByText("Straight: 8")).toBeTruthy();
+    expect(header(7).getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("the header shows what is placed, even while closed, and chips are kept when folded", async () => {
+    const d100 = () => S().session!.inventory.find((d) => d.value === rs(100))!.id;
+    render(<BetsScreen />);
+    expect(header(8).textContent).toContain("No chips yet");
+    await S().adjustChips(positionKey("straight", [8]), d100(), 2);
+    await S().adjustChips(positionKey("split", [7, 8]), d100(), 1);
+    await waitFor(() => expect(header(8).textContent).toContain("2 places · 3 chips · Rs. 300"));
+    expect(header(8).getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(header(8));
+    expect(screen.getByText("Straight: 8").closest("div.rounded-2xl")!.textContent).toContain("2 chips");
+  });
+
+  it("stays as the player left it while placing chips", async () => {
+    const d100 = () => S().session!.inventory.find((d) => d.value === rs(100))!.id;
+    render(<BetsScreen />);
+    fireEvent.click(header(8));
+    await S().adjustChips(positionKey("straight", [7]), d100(), 1);
+    await waitFor(() => expect(header(7).textContent).toContain("1 place · 1 chip"));
+    expect(header(8).getAttribute("aria-expanded")).toBe("true");
   });
 });

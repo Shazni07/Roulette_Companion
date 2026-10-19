@@ -1,7 +1,8 @@
 "use client";
 
 import clsx from "clsx";
-import { useMemo, useState } from "react";
+import { ChevronDown } from "lucide-react";
+import { useId, useMemo, useState } from "react";
 import { BULK_TYPES, roundProblems, type BulkType } from "@/lib/roulette/betting";
 import { buildHistoryIndex, type ChipCount, type HistoryIndex, type PositionHistory } from "@/lib/roulette/history";
 import { insideGroups, outsidePositions } from "@/lib/roulette/rules";
@@ -20,11 +21,15 @@ export function BetsScreen() {
   const outsideVisible = useStore((s) => s.outsideVisible);
   const { go, toggleOutside } = useStore();
   const [addOpen, setAddOpen] = useState(false);
+  // which numbers are unfolded; each new round starts again with only the first number open
+  const [unfolded, setUnfolded] = useState<{ roundId: string; numbers: number[] } | null>(null);
 
   const history = useMemo(() => buildHistoryIndex(rounds, round?.roundNumber ?? 1), [rounds, round?.roundNumber]);
   if (!session || !round) return null;
 
   const groups = insideGroups(session.ruleset, round.selectedMainNumbers);
+  const openNumbers = unfolded?.roundId === round.id ? unfolded.numbers : groups.slice(0, 1).map((g) => g.number);
+  const toggleFold = (n: number) => setUnfolded({ roundId: round.id, numbers: openNumbers.includes(n) ? openNumbers.filter((x) => x !== n) : [...openNumbers, n] });
   const outside = outsidePositions(session.ruleset);
   const hiddenOutside = round.bets.filter((b) => b.category === "outside");
   const problems = roundProblems(round.bets);
@@ -76,15 +81,11 @@ export function BetsScreen() {
       <section aria-label="Inside Bets" className="space-y-5">
         <h2 className="text-2xl font-bold">Inside Bets</h2>
         {groups.map((g) => (
-          <div key={g.number} className="space-y-3">
-            <div className="flex items-center gap-3">
-              <NumberBadge n={g.number} size="md" />
-              <h3 className="text-xl font-bold">Bets with {g.number}</h3>
-            </div>
+          <NumberFold key={g.number} number={g.number} positions={g.positions} bets={round.bets} open={openNumbers.includes(g.number)} onToggle={() => toggleFold(g.number)}>
             {g.positions.map((p) => (
               <BetCard key={`${g.number}-${p.key}`} position={p} round={round} session={session} history={history} />
             ))}
-          </div>
+          </NumberFold>
         ))}
       </section>
 
@@ -112,6 +113,53 @@ export function BetsScreen() {
         )}
       </section>
     </ScreenFrame>
+  );
+}
+
+/** One main number with its split, street, corner and other places. Tap the header to open or close them. */
+function NumberFold({
+  number,
+  positions,
+  bets,
+  open,
+  onToggle,
+  children,
+}: {
+  number: number;
+  positions: Position[];
+  bets: BetPosition[];
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  const fmt = useFmt();
+  const id = useId();
+  const keys = new Set(positions.map((p) => p.key));
+  const placed = bets.filter((b) => keys.has(b.key) && b.chipCount > 0);
+  const chips = placed.reduce((sum, b) => sum + b.chipCount, 0);
+  const money = placed.reduce((sum, b) => sum + b.stake, 0);
+  return (
+    <div className="space-y-3">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={id}
+        onClick={onToggle}
+        className="flex min-h-[64px] w-full items-center gap-3 rounded-2xl border-2 border-line bg-surface px-3 text-left active:scale-[0.99]"
+      >
+        <NumberBadge n={number} size="md" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-xl font-bold">Bets with {number}</span>
+          <span className="block text-base text-muted">{placed.length > 0 ? `${plural(placed.length, "place")} · ${plural(chips, "chip")} · ${fmt(money)}` : "No chips yet"}</span>
+        </span>
+        <ChevronDown aria-hidden size={28} className={clsx("shrink-0 text-muted transition-transform", open && "rotate-180")} />
+      </button>
+      {open && (
+        <div id={id} role="region" aria-label={`Bets with ${number}`} className="space-y-3">
+          {children}
+        </div>
+      )}
+    </div>
   );
 }
 
